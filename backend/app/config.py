@@ -7,9 +7,9 @@ BACKEND_DIR = Path(__file__).resolve().parents[1]
 SHARED_DIR = BACKEND_DIR.parent / "shared"
 load_dotenv(BACKEND_DIR / ".env")
 
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
-LLM_MODEL = os.getenv("LLM_MODEL", "claude-sonnet-5-5")
-LLM_FAST_MODEL = os.getenv("LLM_FAST_MODEL", "claude-haiku-5-5")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+LLM_MODEL = os.getenv("LLM_MODEL", "gemini-2.5-flash")
+LLM_FAST_MODEL = os.getenv("LLM_FAST_MODEL", "gemini-2.5-flash-lite")
 LLM_TIMEOUT = float(os.getenv("LLM_TIMEOUT", "45"))
 
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")

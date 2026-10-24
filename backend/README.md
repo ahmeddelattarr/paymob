@@ -1,6 +1,6 @@
 # Career Readiness API (backend)
 
-FastAPI + LangGraph + Claude. Reads a CV and a curriculum PDF, scores readiness against Egyptian junior job postings, runs a chat that rescores live, builds a plan, and unlocks the premium plan through a Paymob test payment.
+FastAPI + LangGraph + Gemini. Reads a CV and a curriculum PDF, scores readiness against Egyptian junior job postings, runs a chat that rescores live, builds a plan, and unlocks the premium plan through a Paymob test payment.
 
 ## Setup
 
@@ -9,7 +9,7 @@ cd backend
 python -m venv .venv
 .venv/Scripts/activate          # Windows;  source .venv/bin/activate on macOS/Linux
 pip install -r requirements.txt
-cp .env.example .env            # fill in ANTHROPIC_API_KEY and the Paymob TEST keys
+cp .env.example .env            # fill in GEMINI_API_KEY and the Paymob TEST keys
 uvicorn app.main:app --port 8000
 ```
 
@@ -79,6 +79,6 @@ app/scoring.py   readiness + gaps (pure)
 app/plan.py      roadmap, resources, project, projection, career path
 app/payments.py  Paymob intention + HMAC
 app/data.py      CSV loading, alias normalization, market demand
-app/llm.py       Claude structured output with timeout
+app/llm.py       Gemini structured output with timeout
 app/mock.py      demo persona result
 ```

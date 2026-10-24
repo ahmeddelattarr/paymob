@@ -1,4 +1,5 @@
-import anthropic
+from google import genai
+from google.genai import types
 
 from . import config
 
@@ -7,8 +8,9 @@ class LLMError(Exception):
     pass
 
 
-_client = (anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY, timeout=config.LLM_TIMEOUT, max_retries=1)
-           if config.ANTHROPIC_API_KEY else None)
+_client = (genai.Client(api_key=config.GEMINI_API_KEY,
+                        http_options=types.HttpOptions(timeout=int(config.LLM_TIMEOUT * 1000)))
+           if config.GEMINI_API_KEY else None)
 
 
 def available() -> bool:
@@ -20,16 +22,18 @@ def structured(prompt: str, output_model, *, system: str = "", fast: bool = Fals
     if not _client:
         raise LLMError("LLM not configured")
     try:
-        r = _client.messages.parse(
+        r = _client.models.generate_content(
             model=config.LLM_FAST_MODEL if fast else config.LLM_MODEL,
-            max_tokens=8000,
-            system=system or "You are a precise career-readiness assistant for tech graduates in Egypt.",
-            messages=[{"role": "user", "content": prompt}],
-            output_config={"effort": "low"},
-            output_format=output_model,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=system or "You are a precise career-readiness assistant for tech graduates in Egypt.",
+                response_mime_type="application/json",
+                response_schema=output_model,
+                temperature=0,
+            ),
         )
-    except anthropic.APIError as e:
+    except Exception as e:  # any SDK/network/timeout error -> caller's deterministic fallback
         raise LLMError(str(e)) from e
-    if r.parsed_output is None:
-        raise LLMError(f"no structured output (stop_reason={r.stop_reason})")
-    return r.parsed_output
+    if not isinstance(r.parsed, output_model):
+        raise LLMError(f"no structured output (finish_reason={r.candidates[0].finish_reason if r.candidates else None})")
+    return r.parsed
