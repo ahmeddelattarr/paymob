@@ -1,0 +1,20 @@
+course_name_pattern,skill_ids
+python,python
+java,java|oop
+object oriented,oop
+data structures,data_structures
+algorithms,data_structures
+database,sql|database_design
+software testing,testing
+software engineering,agile
+web development,html_css|javascript
+web programming,html_css|javascript
+operating systems,linux
+machine learning,machine_learning|python
+deep learning,deep_learning
+artificial intelligence,machine_learning
+natural language,nlp
+statistics,statistics
+probability,statistics
+data mining,machine_learning|pandas
+cloud computing,cloud

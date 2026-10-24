@@ -1,0 +1,22 @@
+skill_id,title,url,type,language,hours,free
+docker,Docker tutorials in Arabic (YouTube search),https://www.youtube.com/results?search_query=docker+%D8%B4%D8%B1%D8%AD+%D8%B9%D8%B1%D8%A8%D9%8A,video,ar,4,true
+docker,Docker Get Started guide,https://docs.docker.com/get-started/,docs,en,3,true
+git,Git & GitHub in Arabic (YouTube search),https://www.youtube.com/results?search_query=git+github+%D8%B4%D8%B1%D8%AD+%D8%B9%D8%B1%D8%A8%D9%8A,video,ar,3,true
+git,Pro Git Book,https://git-scm.com/book/en/v2,docs,en,6,true
+testing,pytest Getting Started,https://docs.pytest.org/en/stable/getting-started.html,docs,en,2,true
+redis,Redis University: Introduction,https://university.redis.io/,course,en,4,true
+sql,SQLBolt interactive lessons,https://sqlbolt.com/,course,en,4,true
+rest_api,MDN: HTTP overview,https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview,article,en,2,true
+fastapi,FastAPI Tutorial,https://fastapi.tiangolo.com/tutorial/,docs,en,5,true
+django,Django official tutorial,https://docs.djangoproject.com/en/stable/intro/tutorial01/,docs,en,6,true
+linux,Linux Journey,https://linuxjourney.com/,course,en,6,true
+ci_cd,GitHub Actions quickstart,https://docs.github.com/en/actions/writing-workflows/quickstart,docs,en,2,true
+kubernetes,Kubernetes Basics tutorial,https://kubernetes.io/docs/tutorials/kubernetes-basics/,docs,en,4,true
+cloud,AWS Cloud Practitioner Essentials,https://aws.amazon.com/training/digital/aws-cloud-practitioner-essentials/,course,en,6,true
+react,React official Learn guide,https://react.dev/learn,docs,en,8,true
+javascript,JavaScript in Arabic (YouTube search),https://www.youtube.com/results?search_query=javascript+%D8%B4%D8%B1%D8%AD+%D8%B9%D8%B1%D8%A8%D9%8A,video,ar,10,true
+power_bi,Power BI learning path,https://learn.microsoft.com/en-us/training/powerplatform/power-bi,course,en,8,true
+pandas,pandas: 10 minutes to pandas,https://pandas.pydata.org/docs/user_guide/10min.html,docs,en,2,true
+machine_learning,Google Machine Learning Crash Course,https://developers.google.com/machine-learning/crash-course,course,en,15,true
+test_automation,Playwright Getting Started,https://playwright.dev/docs/intro,docs,en,3,true
+nosql,MongoDB University basics,https://learn.mongodb.com/,course,en,4,true

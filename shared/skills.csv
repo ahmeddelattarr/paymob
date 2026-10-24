@@ -1,0 +1,36 @@
+skill_id,canonical_name,aliases,category
+python,Python,python|python3,language
+java,Java,java|jvm,language
+javascript,JavaScript,javascript|js|es6,language
+typescript,TypeScript,typescript|ts,language
+csharp,C#,c#|.net|dotnet|asp.net,language
+sql,SQL,sql|mysql|postgresql|postgres|sql server|sqlite,data
+nosql,NoSQL,nosql|mongodb|mongo,data
+database_design,Database Design,database design|er diagram|normalization|schema design|database schema,data
+rest_api,REST APIs,rest api|rest apis|restful|api design|apis,backend
+django,Django,django|django rest framework|drf,backend
+fastapi,FastAPI/Flask,fastapi|flask,backend
+nodejs,Node.js,node.js|nodejs|express|express.js,backend
+spring,Spring Boot,spring|spring boot,backend
+redis,Redis,redis|caching,backend
+git,Git,git|github|gitlab|version control,tools
+docker,Docker,docker|containers|docker compose|containerization,devops
+kubernetes,Kubernetes,kubernetes|k8s,devops
+linux,Linux,linux|bash|shell scripting|unix,devops
+ci_cd,CI/CD,ci/cd|jenkins|github actions|gitlab ci|continuous integration,devops
+cloud,Cloud (AWS/Azure/GCP),aws|azure|gcp|cloud,devops
+testing,Unit Testing,unit testing|unit tests|pytest|junit|jest|tdd|software testing,qa
+test_automation,Test Automation,selenium|cypress|playwright|test automation|automation testing,qa
+html_css,HTML/CSS,html|css|html5|css3|tailwind|sass,frontend
+react,React,react|react.js|reactjs|next.js|nextjs,frontend
+angular,Angular,angular,frontend
+excel,Excel,excel|spreadsheets,data
+power_bi,Power BI/Tableau,power bi|tableau|data visualization|dashboards,data
+statistics,Statistics,statistics|probability|hypothesis testing,data
+pandas,Pandas/NumPy,pandas|numpy,data
+machine_learning,Machine Learning,machine learning|ml|scikit-learn|sklearn,ai
+deep_learning,Deep Learning,deep learning|pytorch|tensorflow|neural networks|keras,ai
+nlp,NLP/LLMs,nlp|natural language processing|llm|llms|transformers|rag,ai
+oop,OOP,oop|object oriented|object-oriented,fundamentals
+data_structures,Data Structures & Algorithms,data structures|algorithms|problem solving,fundamentals
+agile,Agile/Scrum,agile|scrum|jira,soft
