@@ -119,7 +119,7 @@ def discuss(state: State):
         entry["level"] = it.level if RANK[it.level] > RANK[entry["level"]] else entry["level"]
     elif it.has_skill:  # only tutorials: basic, not confirmed
         entry["level"] = entry["level"] if RANK[entry["level"]] > RANK["basic"] else "basic"
-    else:
+    elif entry["level"] == "none":  # "no" never erases course/CV evidence, only confirms a missing skill
         entry["confirmed"] = False
     return {"profile": profile, "asked": asked + [sid], "reply": it.reply}
 

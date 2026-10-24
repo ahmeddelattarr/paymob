@@ -38,7 +38,8 @@ def _reason(entry: dict | None) -> str:
         if entry and entry.get("confirmed") is False:
             return "You said you haven't used it yet"
         return "Not found in your CV or courses"
-    if all(e["source"] == "course" for e in entry["evidence"]):
+    sources = {e["source"] for e in entry["evidence"]}
+    if "course" in sources and "cv" not in sources:
         return "Only seen in a course, no project"
     return "Only basic experience found"
 
