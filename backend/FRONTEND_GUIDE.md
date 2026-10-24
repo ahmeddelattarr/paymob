@@ -529,15 +529,146 @@ catch (e) {
 
 ---
 
-## 6. Suggested routes (Next.js App Router)
+## 6. Pages to build
 
-| Route | Calls | Notes |
-|---|---|---|
-| `/` | `GET /api/roles`, `POST /api/analyze` | Upload form. **Also handles the Paymob return** (`?analysis_id&payment`) → redirect to `/plan/[id]?payment=…` |
-| `/analyzing/[id]` | `GET …/stream` | Steps list; on `done` → `/results/[id]` |
-| `/results/[id]` | `GET …/results` | Gauge, summary, gaps, skills with evidence, buttons to Chat and Plan |
-| `/chat/[id]` (or a panel on results) | `POST …/chat` | Opening call with `""`; animate the score on `score_changed` |
-| `/plan/[id]` | `GET …/payments/{id}/status`, `GET …/plan`, `GET /api/roles/compare/{id}` (premium), `POST …/checkout` | Preview vs full; unlock button; payment toasts |
+Six pages plus one shared error component. The routes assume the Next.js App Router; the names are suggestions, except `/`, which **must** handle the Paymob return.
+
+```
+/                      Upload (+ Paymob return handler)
+/analyzing/[id]        Analyzing (SSE progress)
+/results/[id]          Results: score, gaps, skills with evidence
+/chat/[id]             Discussion chat with live score
+/plan/[id]             Plan: free preview / full premium + Unlock
+/compare/[id]          Role comparison (premium)  ← may also be a section inside /plan
+```
+
+### Page 1: Upload `/`
+
+**Purpose:** collect the CV, curriculum and target role, then start the analysis.
+
+| | |
+|---|---|
+| On load | `GET /api/roles` → fill the role picker (cards or a dropdown, showing `role_title` + "`postings_count` postings"). **First** check for the Paymob return (below). |
+| UI | Two PDF drop zones ("Your CV", "Your curriculum / transcript"), the role picker, an **Analyze** button, and a small "Try the demo" link → `/results/demo` |
+| Client validation | Both files present, `.pdf`, under 10 MB, role selected. Keep the button disabled until valid. |
+| On submit | `POST /api/analyze` → `localStorage.lastAnalysisId = analysis_id` → navigate to `/analyzing/{analysis_id}` |
+| Loading | Spinner on the button, inputs disabled (under 1 s) |
+| Errors | `NO_TEXT` → inline red text under the matching drop zone (check the message for `CV` or `curriculum`) · `VALIDATION_ERROR` → highlight the fields · `INVALID_ROLE` → reset the picker · `NETWORK`/`INTERNAL` → toast |
+
+**Paymob return handler (on the same page, runs first):**
+```ts
+const id = searchParams.get("analysis_id") || localStorage.getItem("lastAnalysisId");
+const payment = searchParams.get("payment");            // "paid" | "failed" | "pending"
+if (payment && id) router.replace(`/plan/${id}?payment=${payment}`);
+```
+While it redirects, show a full-screen "Confirming your payment…" spinner instead of the upload form.
+
+### Page 2: Analyzing `/analyzing/[id]`
+
+**Purpose:** show progress for the ~15–25 s the analysis takes.
+
+| | |
+|---|---|
+| On load | Open `EventSource(api.streamUrl(id))` (code in §2.3) |
+| UI | A vertical checklist that grows as steps arrive: ✔ done steps and a spinner on the current one. The `message` text comes from the server. Below it, a rotating tip ("We compare you against real junior postings in Egypt…"). |
+| On `done` | `router.replace('/results/{id}')` |
+| On `error` event | Show the `message` + a **Try again** button → `/` |
+| `onerror` before any event | "We couldn't find this analysis." + **Upload again** → `/` |
+| Note | It's normal for nothing to happen for ~10–15 s between "Reading your curriculum" and "Analyzing … postings". Keep the spinner animating. |
+
+### Page 3: Results `/results/[id]`
+
+**Purpose:** the main payoff: score, ranked gaps and evidence.
+
+| | |
+|---|---|
+| On load | `GET /api/analyze/{id}/results` |
+| UI: header | A big circular **readiness gauge** (0–100), `role_title`, "Based on `postings_analyzed` junior postings in Egypt", and `summary` |
+| UI: gaps | A card per gap, in the order received: `skill_name`, tier badge (**Must-have** red / **Nice to have** amber), "`round(frequency*100)`% of postings", `reason` in grey |
+| UI: skills | A chip or card per skill with a level badge (Basic / Intermediate / Strong). Expanding it shows the `evidence` quotes with source icons 📄 CV · 🎓 Course · 💬 You told us. |
+| CTAs | **"Discuss my gaps"** → `/chat/{id}` (primary) · **"See my plan"** → `/plan/{id}` |
+| Loading | Skeleton gauge and cards |
+| Errors | `NOT_READY` → `router.replace('/analyzing/{id}')` · `NOT_FOUND` / `ANALYSIS_FAILED` → shared error component with **Upload again** |
+| Demo | `/results/demo` works without uploading |
+
+### Page 4: Chat `/chat/[id]`
+
+**Purpose:** the AI asks about missing must-have skills and the score updates live.
+
+| | |
+|---|---|
+| On load | `GET …/results` (for the starting score and gaps) **and** `POST …/chat {message:""}` → first AI bubble |
+| UI | Two columns on desktop, stacked on mobile. **Left:** chat bubbles + input (Enter to send). **Right (sticky):** the readiness gauge + live gaps list. Show a hint under the input: "You can answer in Arabic or English". |
+| On send | Add the user bubble right away → show a typing indicator → `POST …/chat {message}` → add the AI bubble with `reply` |
+| When `score_changed` is true | Animate the gauge counting from `previous_readiness` to `readiness` (~1 s), show a "+13" chip that fades out, and replace the gaps list with `gaps` (animate removed cards out) |
+| End of chat | When `reply` contains `That's everything I wanted to check`, disable the input and show the **"See my plan →"** button |
+| Loading | Typing indicator (1–3 s); disable the input while waiting |
+| Errors | `NOT_FOUND` / `ANALYSIS_FAILED` → shared error component · `NOT_READY` → `/analyzing/{id}` · other → remove the typing indicator, keep the text in the input, toast "Couldn't send, try again" |
+| Refresh | Bubbles are lost on refresh (client state). Call `chat("")` to get the current pending question. That's fine. |
+
+### Page 5: Plan `/plan/[id]`
+
+**Purpose:** the personal roadmap. A free preview sells the premium unlock.
+
+| | |
+|---|---|
+| On load | 1) If the URL has `?payment=…`, run the **payment confirmation** below first. 2) `GET …/plan` (skeleton; the first call can take ~10 s). 3) `GET …/results` for the current score and to map skill ids to names. |
+| UI: always | **Projected score card:** "You're at **47%** → finish this plan to reach **86%**" (`results.readiness` → `plan.projected_readiness`) · **Week 1** card (focus skills as chips, task checklist, "~`hours` h") · **Project** card title |
+| UI: free (`premium:false`) | Weeks 2–4 as **blurred locked cards** · project details locked · "Resources", "Career path" and "Compare roles" sections locked · a sticky **Unlock full plan, 99 EGP** button |
+| UI: premium (`premium:true`) | All weeks as a timeline · project: `description`, `skills_covered` chips, `milestones` checklist · resources grouped by skill (title as a link opening in a new tab, badges `type`, `عربي` if `language==="ar"`, `Free`, `~hours h`) · **career path** as a horizontal stepper (`title` + `description`) · **compare roles** section (Page 6) |
+| Unlock click | `localStorage.lastAnalysisId = id` → `POST …/checkout` (button spinner) → `window.location.href = checkout_url` |
+| Unlock errors | `PAYMENT_UNAVAILABLE` → toast with the message, button stays enabled · `NOT_READY` → disable the button |
+| Errors (load) | Same as Results |
+
+**Payment confirmation** (when the URL has `?payment=`):
+```ts
+// show banner "Confirming your payment…"
+for (let i = 0; i < 10; i++) {
+  const s = await api.paymentStatus(id);
+  if (s.premium) { toast.success("Premium unlocked 🎉"); break; }
+  if (s.status === "failed") { toast.error("Payment failed. You were not charged."); break; }
+  await new Promise((r) => setTimeout(r, 2000));
+}
+// still pending after ~20 s → banner: "Payment is processing. Refresh in a minute."
+router.replace(`/plan/${id}`);   // clean the URL, then (re)load the plan
+```
+**Never** unlock from `?payment=paid` alone. Only `/status` decides.
+
+### Page 6: Role comparison `/compare/[id]` (or a section in Plan)
+
+**Purpose:** "Which role am I closest to?"
+
+| | |
+|---|---|
+| Access | **Premium only.** On load call `GET /api/payments/{id}/status`. If `premium` is false, show a locked card with an Unlock button (same flow as Plan). |
+| On load (premium) | `GET /api/roles/compare/{id}` |
+| UI | Horizontal bars for all 6 roles, sorted as received, showing `role_title` + `readiness%`. Highlight the role the user analyzed (`results.role`) with "Your target". |
+| Errors | Same as Results |
+
+### Shared: error component
+
+Use it for `NOT_FOUND`, `ANALYSIS_FAILED` and a dead backend:
+- Icon + `error.message` (exact text from the API) + an **Upload again** button → `/`
+- For network errors: "Can't reach the server. Please check your connection and try again." + **Retry**
+
+### Shared: layout
+
+Header with the app name, plus a "Premium ✓" badge when `premium` is true (from `/status`). Mobile-first; every page must work at 375 px width. Arabic text appears in chat replies and resource titles, so make sure those render correctly (`dir="auto"` on chat bubbles).
+
+---
+
+## 6b. Definition of done (checklist)
+
+- [ ] Upload → Analyzing → Results works with the demo PDFs in `shared/demo/`
+- [ ] `/results/demo`, `/chat/demo` and `/plan/demo` work without uploading
+- [ ] `NO_TEXT` shows under the right file input (test with an image-only PDF)
+- [ ] The analyzing page survives a refresh (the stream replays)
+- [ ] Chat: the opening question appears, the score animates on `score_changed`, and the input is disabled at the end
+- [ ] Plan preview shows week 1 + the project title + projected score; everything else is locked
+- [ ] Unlock → Paymob sandbox → pay with `5123 4567 8901 2346` → land on `/` → redirected to `/plan/{id}` → "Premium unlocked" → full plan visible
+- [ ] Compare roles is visible only when premium
+- [ ] Each error code in §3 shows its message (stop the backend once to test the network error)
+- [ ] Everything works at 375 px width
 
 ---
 
